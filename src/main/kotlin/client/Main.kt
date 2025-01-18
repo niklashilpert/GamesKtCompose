@@ -8,34 +8,37 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import client.ui.ConnectionView
-import server.GameType
+import client.ui.ConnectionUIHandle
+import java.lang.Thread.sleep
 
 
 @Composable
 @Preview
 fun App() {
+    val connectionUIHandle = remember { ConnectionUIHandle() }
+
     MaterialTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = colors.background
         ) {
-            ConnectionView(::connect)
+            connectionUIHandle.ConnectionView(connectionUIHandle, ::connect)
         }
     }
 }
 
 
-fun connect(ipAddress: String, port: Int, lobbyName: String, gameType: GameType, userName: String): String? {
-    return "Error"
+fun connect(uiHandle: ConnectionUIHandle) {
+    uiHandle.updateState(ConnectionUIHandle.State.CONNECTING)
+    Thread {
+        sleep(1000)
+        uiHandle.updateState(ConnectionUIHandle.State.NO_CONNECTION)
+    }.start()
 }
 
 fun main() {
-
-    println("Test")
-
     application {
-        var windowTitle = remember { mutableStateOf("GamesKt") }
+        val windowTitle = remember { mutableStateOf("GamesKt") }
         Window(
             onCloseRequest = ::exitApplication,
             title = windowTitle.value,
