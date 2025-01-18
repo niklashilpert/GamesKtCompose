@@ -15,14 +15,12 @@ import java.lang.Thread.sleep
 @Composable
 @Preview
 fun App() {
-    val connectionUIHandle = remember { ConnectionUIHandle() }
-
     MaterialTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = colors.background
         ) {
-            connectionUIHandle.ConnectionView(connectionUIHandle, ::connect)
+            ConnectionUIHandle.ConnectionView(::connect)
         }
     }
 }

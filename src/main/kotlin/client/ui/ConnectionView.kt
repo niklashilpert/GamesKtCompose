@@ -16,12 +16,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import client.config.ConfigStore
 import server.GameType
 import kotlin.math.roundToInt
 
 val POSITIVE_NUMBER = Regex("^\\d+$")
 
-class ConnectionUIHandle {
+object ConnectionUIHandle {
 
     enum class State(val string: String, val isError: Boolean) {
         INVALID_IP("Please enter a valid IP address", true),
@@ -32,54 +33,78 @@ class ConnectionUIHandle {
         CONNECTING("Connecting...", false)
     }
 
-    class Info internal constructor(ipAddress: String, port: Int, lobbyName: String, gameType: GameType, userName: String) {
-        var ipAddress by mutableStateOf(ipAddress)
-            internal set
-        var port by mutableStateOf(port)
-            internal set
-        var lobbyName by mutableStateOf(lobbyName)
-            internal set
-        var gameType by mutableStateOf(gameType)
-            internal set
-        var userName by mutableStateOf(userName)
-            internal set
-    }
+    private var _ipAddress by mutableStateOf(ConfigStore.ip)
+    var ipAddress: String
+        get() = _ipAddress
+        set(value) {
+            _ipAddress = value
+            ConfigStore.ip = value
+        }
+
+    private var _port by mutableStateOf(ConfigStore.port)
+    var port: Int
+        get() = _port
+        set(value) {
+            _port = value
+            ConfigStore.port = value
+        }
+
+    private var _lobbyName by mutableStateOf(ConfigStore.lobby)
+    var lobbyName: String
+        get() = _lobbyName
+        set(value) {
+            _lobbyName = value
+            ConfigStore.lobby = value
+        }
+
+    private var _gameType by mutableStateOf(ConfigStore.game)
+    var gameType: GameType
+        get() = _gameType
+        set(value) {
+            _gameType = value
+            ConfigStore.game = value
+        }
+
+    private var _userName by mutableStateOf(ConfigStore.user)
+    var userName: String
+        get() = _userName
+        set(value) {
+            _userName = value
+            ConfigStore.user = value
+        }
 
     var state by mutableStateOf(State.IDLE)
         private set
 
     private var stateTrigger by mutableStateOf(0L)
 
-    private val info = getConnectionInfoFromDefaults()
-
     fun updateState(state: State) {
         this.state = state
         stateTrigger++
     }
 
+    private fun onClick(onJoin: (ConnectionUIHandle) -> Unit) {
+        updateStateWithConnectionInfo()
+        if (!state.isError) {
+            ConfigStore.storeConnectionInfo()
+            onJoin(this)
+        }
+    }
+
     private fun updateStateWithConnectionInfo() {
-        if (info.ipAddress.isBlank()) {
+        if (ipAddress.isBlank()) {
             updateState(State.INVALID_IP)
-        } else if (info.lobbyName.isBlank()) {
+        } else if (lobbyName.isBlank()) {
             updateState(State.INVALID_LOBBY)
-        } else if (info.userName.isBlank()) {
+        } else if (userName.isBlank()) {
             updateState(State.INVALID_USER_NAME)
         } else {
             updateState(State.IDLE)
         }
     }
 
-    private fun getConnectionInfoFromDefaults(): Info {
-        val ipAddress = "localhost"
-        val port = 5555
-        val lobbyName = "lobby"
-        val gameType = GameType.TIC_TAC_TOE
-        val userName = ""
-        return Info(ipAddress, port, lobbyName, gameType, userName)
-    }
-
     @Composable
-    fun ConnectionView(uiHandle: ConnectionUIHandle, onJoin: (ConnectionUIHandle) -> Unit) {
+    fun ConnectionView(onJoin: (ConnectionUIHandle) -> Unit) {
         val padding = 10.dp
 
         Row(
@@ -94,7 +119,7 @@ class ConnectionUIHandle {
                     .weight(1f)
                     .padding(end = padding)
             ) {
-                ConnectionInputView(uiHandle)
+                ConnectionInputView()
             }
             Divider(
                 color = Color.Black,
@@ -108,21 +133,14 @@ class ConnectionUIHandle {
                     .weight(1f)
                     .padding(start = padding)
             ) {
-                LobbyInputView(
-                    uiHandle,
-                ) {
-                    uiHandle.updateStateWithConnectionInfo()
-                    if (!uiHandle.state.isError) {
-                        onJoin(uiHandle)
-                    }
-                }
+                LobbyInputView() { onClick(onJoin) }
             }
 
         }
     }
 
     @Composable
-    private fun ConnectionInputView(uiHandle: ConnectionUIHandle) {
+    private fun ConnectionInputView() {
         var gameTypeDropdownExpanded by remember { mutableStateOf(false) }
 
         LazyVerticalGrid(
@@ -141,10 +159,8 @@ class ConnectionUIHandle {
             }
             item(span = { GridItemSpan(7) }) {
                 OutlinedTextField(
-                    value = uiHandle.info.ipAddress,
-                    onValueChange = {
-                        uiHandle.info.ipAddress = it
-                    },
+                    value = ipAddress,
+                    onValueChange = { ipAddress = it },
                     label = { Text("IP address / Domain name") },
                     singleLine = true,
                 )
@@ -152,12 +168,12 @@ class ConnectionUIHandle {
 
             item(span = { GridItemSpan(3) }) {
                 OutlinedTextField(
-                    value = uiHandle.info.port.toString(),
+                    value = port.toString(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     onValueChange = {
                         if (it.matches(POSITIVE_NUMBER)) {
-                            val port = it.toIntOrNull() ?: 1
-                            uiHandle.info.port = port.coerceIn(1..65535)
+                            val p = it.toIntOrNull() ?: 1
+                            port = p.coerceIn(1..65535)
                         }
                     },
                     label = { Text("Port") },
@@ -167,9 +183,9 @@ class ConnectionUIHandle {
 
             item(span = { GridItemSpan(maxLineSpan) }) {
                 OutlinedTextField(
-                    value = uiHandle.info.lobbyName,
+                    value = lobbyName,
                     onValueChange = {
-                        uiHandle.info.lobbyName = it
+                        lobbyName = it
                     },
                     label = { Text("Lobby name") },
                     singleLine = true,
@@ -180,7 +196,7 @@ class ConnectionUIHandle {
                 OutlinedButton(
                     onClick = { gameTypeDropdownExpanded = true },
                 ) {
-                    Text(text = "Selected game type: ${uiHandle.info.gameType.string}")
+                    Text(text = "Selected game type: ${gameType.string}")
                 }
 
                 DropdownMenu(
@@ -191,7 +207,7 @@ class ConnectionUIHandle {
                         DropdownMenuItem(
                             onClick = {
                                 gameTypeDropdownExpanded = false
-                                uiHandle.info.gameType = type
+                                gameType = type
                             }
                         )
                         {
@@ -205,11 +221,11 @@ class ConnectionUIHandle {
 
 
     @Composable
-    private fun LobbyInputView(uiHandle: ConnectionUIHandle, onJoin: () -> Unit) {
+    private fun LobbyInputView(onJoin: () -> Unit) {
 
         val shake = remember { Animatable(0f) }
-        LaunchedEffect(uiHandle.stateTrigger) {
-            if (uiHandle.state.isError) {
+        LaunchedEffect(stateTrigger) {
+            if (state.isError) {
                 for (i in 0..6) {
                     when (i % 2) {
                         0 -> shake.animateTo(2f, spring(stiffness = 60_000f))
@@ -236,9 +252,9 @@ class ConnectionUIHandle {
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
                 OutlinedTextField(
-                    value = uiHandle.info.userName,
+                    value = userName,
                     onValueChange = {
-                        uiHandle.info.userName = it
+                        userName = it
                     },
                     label = { Text("User name") },
                     singleLine = true,
@@ -253,10 +269,10 @@ class ConnectionUIHandle {
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Text(
-                    text = uiHandle.state.string,
+                    text = state.string,
                     textAlign = TextAlign.Center,
                     fontSize = 15.sp,
-                    color = if (uiHandle.state.isError) MaterialTheme.colors.error else MaterialTheme.colors.onSurface,
+                    color = if (state.isError) MaterialTheme.colors.error else MaterialTheme.colors.onSurface,
                     modifier = Modifier.offset { IntOffset(shake.value.roundToInt(), 0) }
                 )
             }
