@@ -17,12 +17,12 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import client.config.ConfigStore
-import server.GameType
+import game.GameType
 import kotlin.math.roundToInt
 
 val POSITIVE_NUMBER = Regex("^\\d+$")
 
-object ConnectionUIHandle {
+class ConnectionUIManager(private val onJoin: (ConnectionUIManager) -> Unit) {
 
     enum class State(val string: String, val isError: Boolean) {
         INVALID_IP("Please enter a valid IP address", true),
@@ -30,7 +30,12 @@ object ConnectionUIHandle {
         INVALID_USER_NAME("Please enter a user name", true),
         NO_CONNECTION("Could not connect to the provided server details", true),
         IDLE("", false),
-        CONNECTING("Connecting...", false)
+        CONNECTING("Connecting...", false),
+
+        LOBBY_IS_FULL("The lobby is full", true),
+        LOBBY_IS_PLAYING("The lobby is currently playing", true),
+        PLAYER_EXISTS("A player with that name already joined the lobby", true),
+        UNKNOWN_ERROR("An unknown error occurred", true),
     }
 
     private var _ipAddress by mutableStateOf(ConfigStore.ip)
@@ -83,7 +88,7 @@ object ConnectionUIHandle {
         stateTrigger++
     }
 
-    private fun onClick(onJoin: (ConnectionUIHandle) -> Unit) {
+    private fun onClick(onJoin: (ConnectionUIManager) -> Unit) {
         updateStateWithConnectionInfo()
         if (!state.isError) {
             ConfigStore.storeConnectionInfo()
@@ -104,7 +109,7 @@ object ConnectionUIHandle {
     }
 
     @Composable
-    fun ConnectionView(onJoin: (ConnectionUIHandle) -> Unit) {
+    fun ConnectionView() {
         val padding = 10.dp
 
         Row(

@@ -1,4 +1,4 @@
-package server
+package game
 
 enum class GameType(val string: String) {
     TIC_TAC_TOE ("TicTacToe"),

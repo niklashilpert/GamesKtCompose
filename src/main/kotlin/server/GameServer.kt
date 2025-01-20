@@ -1,6 +1,10 @@
 package server
 
+import game.GameType
 import server.lobby.*
+import shared.connection.PacketConnection
+import shared.connection.InetPacket
+import shared.connection.Player
 import java.io.IOException
 import java.net.ServerSocket
 import java.net.Socket
@@ -27,7 +31,7 @@ object GameServer {
     }
 
     private fun handle(socket: Socket) {
-        val connection = ClientHandle(socket)
+        val connection = PacketConnection(socket, false)
         try {
             val packet = connection.read()
             if (packet is InetPacket.Connect) {

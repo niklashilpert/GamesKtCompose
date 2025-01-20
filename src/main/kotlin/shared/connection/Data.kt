@@ -1,24 +1,23 @@
-package server
+package shared.connection
 
+import game.GameType
 import server.lobby.TicTacToeLobby
 import java.io.Serializable
 
 
-abstract class DataPacket() {
-    class ConnectionLost() : DataPacket()
+abstract class DataPacket {
 }
 
-enum class ResultCode : Serializable {
+enum class ResponseCode : Serializable {
     // General
     SUCCESS,
     NOT_AUTHORIZED,
-    ILLEGAL_PACKET,
     LOBBY_IS_FULL,
     LOBBY_IS_NOT_FULL,
     LOBBY_IS_PLAYING,
     LOBBY_IS_OPEN,
     PLAYER_EXISTS,
-    
+
     // TicTacToe specific
     NOT_YOUR_TURN,
     OUT_OF_BOUNDS,
@@ -29,7 +28,7 @@ enum class ResultCode : Serializable {
 abstract class InetPacket : DataPacket(), Serializable {
     abstract class LobbyInfo : InetPacket()
 
-    class Result(val code: ResultCode) : InetPacket()
+    class Response(val code: ResponseCode) : InetPacket()
 
     // Sent from client
     class Connect(val playerName: String, val lobbyName: String, val gameType: GameType) : InetPacket()

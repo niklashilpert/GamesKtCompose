@@ -1,8 +1,8 @@
 package client
 
-import server.InetPacket
-import server.TicTacToePackets
-import server.GameType
+import shared.connection.InetPacket
+import shared.connection.TicTacToePackets
+import game.GameType
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -29,7 +29,7 @@ fun main(args: Array<String>) {
                     val info = packet.lobbyInfo
                     if (!info.isOpen) {
                         val inGameInfo = info.ticTacToeInfo
-                        println("Running: ${info.lobbyName}[${info.host}] - ${info.playerXName} vs. ${info.playerOName}")
+                        println("Running: ${info.lobbyName}[${info.hostName}] - ${info.playerXName} vs. ${info.playerOName}")
                         printBoard(inGameInfo!!.board)
                         if (inGameInfo.tie) {
                             println("TIE")
@@ -43,11 +43,11 @@ fun main(args: Array<String>) {
                             println("Enemy's turn")
                         }
                     } else {
-                        println("${info.lobbyName}, ${info.isOpen}, ${info.host}, ${info.playerXName}, ${info.playerOName}")
+                        println("${info.lobbyName}, ${info.isOpen}, ${info.hostName}, ${info.playerXName}, ${info.playerOName}")
                     }
 
 
-                } else if (packet is InetPacket.Result){
+                } else if (packet is InetPacket.Response){
                     println(packet.code)
                 } else {
                     println(packet)

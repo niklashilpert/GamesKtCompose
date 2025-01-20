@@ -1,14 +1,14 @@
 package client.config
 
-import server.GameType
-import server.gameTypeOf
+import game.GameType
+import game.gameTypeOf
 
 val CONNECTION_INFO_FILE = "connection_info"
 
 object ConfigStore {
     private val connectionInfoConfig = ConfigFile(CONNECTION_INFO_FILE, hashMapOf(
         "ip" to "hilpert.dev",
-        "port" to "5555",
+        "port" to "6666",
         "lobby" to "",
         "game" to GameType.TIC_TAC_TOE.string,
         "user" to "",

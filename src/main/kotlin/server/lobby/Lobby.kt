@@ -1,6 +1,12 @@
 package server.lobby
 
+import game.GameType
 import server.*
+import shared.connection.DataPacket
+import shared.connection.InetPacket
+import shared.connection.Player
+import shared.connection.ResponseCode
+import java.io.IOException
 import java.io.Serializable
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
@@ -22,7 +28,7 @@ fun createLobby(type: GameType, name: String) : Lobby {
 }
 
 abstract class Lobby internal constructor(val name: String, private val maxPlayerCount: Int) {
-    abstract class Info(val lobbyName: String, val isOpen: Boolean, val host: String?) : Serializable
+    abstract class Info(val lobbyName: String, val isOpen: Boolean, val hostName: String) : Serializable
 
     abstract inner class Task {
         abstract fun perform(): Boolean
@@ -31,20 +37,20 @@ abstract class Lobby internal constructor(val name: String, private val maxPlaye
     protected inner class JoinTask(private val source: Player) : Task() {
         override fun perform(): Boolean {
             if (getPlayers().find { it.name == source.name } != null) {
-                source.tryRespond(ResultCode.PLAYER_EXISTS)
+                source.respond(ResponseCode.PLAYER_EXISTS)
                 source.close()
                 return false
             } else if (isFull()) {
-                source.tryRespond(ResultCode.LOBBY_IS_FULL)
+                source.respond(ResponseCode.LOBBY_IS_FULL)
                 source.close()
                 return false
             } else if (!isOpen) {
-                source.tryRespond(ResultCode.LOBBY_IS_PLAYING)
+                source.respond(ResponseCode.LOBBY_IS_PLAYING)
                 source.close()
                 return false
             } else {
                 joinPlayer(source)
-                source.tryRespond(ResultCode.SUCCESS)
+                source.respond(ResponseCode.SUCCESS)
                 return true
             }
         }
@@ -74,18 +80,18 @@ abstract class Lobby internal constructor(val name: String, private val maxPlaye
         override fun perform(): Boolean {
             if (source == host) {
                 if (!isOpen) {
-                    source.tryRespond(ResultCode.LOBBY_IS_PLAYING)
+                    source.respond(ResponseCode.LOBBY_IS_PLAYING)
                     return false
                 } else if (!isFull()){
-                    source.tryRespond(ResultCode.LOBBY_IS_NOT_FULL)
+                    source.respond(ResponseCode.LOBBY_IS_NOT_FULL)
                     return false
                 } else {
                     startGame()
-                    source.tryRespond(ResultCode.SUCCESS)
+                    source.respond(ResponseCode.SUCCESS)
                     return true
                 }
             } else {
-                source.tryRespond(ResultCode.NOT_AUTHORIZED)
+                source.respond(ResponseCode.NOT_AUTHORIZED)
                 return false
             }
         }
@@ -93,14 +99,14 @@ abstract class Lobby internal constructor(val name: String, private val maxPlaye
     protected inner class StopGameTask(private val source: Player) : Task() {
         override fun perform(): Boolean {
             if (host != source) {
-                source.tryRespond(ResultCode.NOT_AUTHORIZED)
+                source.respond(ResponseCode.NOT_AUTHORIZED)
                 return false
             } else if (isOpen) {
-                source.tryRespond(ResultCode.LOBBY_IS_OPEN)
+                source.respond(ResponseCode.LOBBY_IS_OPEN)
                 return false
             } else {
                 stopGame()
-                source.tryRespond(ResultCode.SUCCESS)
+                source.respond(ResponseCode.SUCCESS)
                 return true
             }
         }
@@ -147,9 +153,11 @@ abstract class Lobby internal constructor(val name: String, private val maxPlaye
     private fun createPlayerListeningThread(player: Player): Thread {
         return Thread {
             while(!player.isClosed) {
-                val packet = player.tryRead()
-                if (packet != null) {
+                try {
+                    val packet = player.read()
                     handleIncomingPacket(packet, player)
+                } catch (e: IOException) {
+                    player.close()
                 }
             }
             log("${player.name} lost connection.")
@@ -259,7 +267,7 @@ abstract class Lobby internal constructor(val name: String, private val maxPlaye
      * Sends a lobby update packet to the player.
      */
     private fun notifyPlayer(player: Player) {
-        player.trySend(getLobbyInfoPacket())
+        player.write(getLobbyInfoPacket())
     }
 
     /**

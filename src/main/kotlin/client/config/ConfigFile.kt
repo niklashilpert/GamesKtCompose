@@ -3,7 +3,7 @@ package client.config
 import java.io.File
 
 const val CONFIG_DIR = "/home/niklas/Desktop/GamesKtCompose/"
-val LINE_FORMAR = Regex("^([a-zA-Z-_. ]+)=(.+)$")
+val LINE_FORMAT = Regex("^([a-zA-Z-_. ]+)=(.+)$")
 
 class ConfigFile(val name: String, defaultProperties: HashMap<String, String>) {
     val properties = defaultProperties
@@ -21,9 +21,6 @@ class ConfigFile(val name: String, defaultProperties: HashMap<String, String>) {
     fun getInt(key: String): Int {
         return properties[key]!!.toIntOrNull() ?: 0
     }
-    fun getBoolean(key: String): Boolean {
-        return properties[key]?.toBooleanStrictOrNull() ?: false
-    }
 
     fun set(key: String, value: Any) {
         properties[key] = value.toString()
@@ -32,7 +29,7 @@ class ConfigFile(val name: String, defaultProperties: HashMap<String, String>) {
     private fun read() {
         if (file.isFile) {
             for (line in file.readLines()) {
-                val match = LINE_FORMAR.matchEntire(line) ?: continue
+                val match = LINE_FORMAT.matchEntire(line) ?: continue
                 if (match.groupValues.size != 3) continue
 
                 val key = match.groupValues[1]
@@ -43,7 +40,6 @@ class ConfigFile(val name: String, defaultProperties: HashMap<String, String>) {
     }
 
     fun store() {
-        println("Storing $name")
         if (!file.isFile) {
             file.parentFile.mkdirs()
             file.createNewFile()

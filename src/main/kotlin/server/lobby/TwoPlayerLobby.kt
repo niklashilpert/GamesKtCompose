@@ -1,24 +1,24 @@
 package server.lobby
 
-import server.DataPacket
-import server.Player
-import server.InetPacket
-import server.ResultCode
+import shared.connection.DataPacket
+import shared.connection.Player
+import shared.connection.InetPacket
+import shared.connection.ResponseCode
 
 abstract class TwoPlayerLobby(name: String) : Lobby(name, 2) {
     protected inner class PlayerSwapTask(private val source: Player) : Task() {
         override fun perform(): Boolean {
             if (host != source) {
-                source.tryRespond(ResultCode.NOT_AUTHORIZED)
+                source.respond(ResponseCode.NOT_AUTHORIZED)
                 return false
             } else if (!isOpen) {
-                source.tryRespond(ResultCode.LOBBY_IS_PLAYING)
+                source.respond(ResponseCode.LOBBY_IS_PLAYING)
                 return false
             } else {
                 val tmp = player1
                 player1 = player2
                 player2 = tmp
-                source.tryRespond(ResultCode.SUCCESS)
+                source.respond(ResponseCode.SUCCESS)
                 return true
             }
         }
