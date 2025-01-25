@@ -31,7 +31,12 @@ object GameServer {
     }
 
     private fun handle(socket: Socket) {
-        val connection = PacketConnection(socket, false)
+        val connection = try {
+            PacketConnection(socket, false)
+        } catch (e: IOException) {
+            println("Connection to ${socket.inetAddress} couldn't be established.")
+            return
+        }
         try {
             val packet = connection.read()
             if (packet is InetPacket.Connect) {

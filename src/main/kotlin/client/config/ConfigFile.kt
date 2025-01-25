@@ -5,7 +5,7 @@ import java.io.File
 const val CONFIG_DIR = "/home/niklas/Desktop/GamesKtCompose/"
 val LINE_FORMAT = Regex("^([a-zA-Z-_. ]+)=(.+)$")
 
-class ConfigFile(val name: String, defaultProperties: HashMap<String, String>) {
+internal class ConfigFile(val name: String, defaultProperties: HashMap<String, String>) {
     val properties = defaultProperties
 
     private val file = File(CONFIG_DIR, "$name.properties")

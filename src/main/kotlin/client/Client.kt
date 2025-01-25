@@ -1,90 +1,69 @@
 package client
 
-import shared.connection.InetPacket
-import shared.connection.TicTacToePackets
-import game.GameType
-import java.io.IOException
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
-import java.net.InetSocketAddress
-import java.net.Socket
+import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme.colors
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
+import client.ui.connection.ConnectionUIState
+import client.ui.tictactoe.TicTacToeUIState
+import client.ui.UIState
+import client.ui.connection.ConnectionView
+import client.ui.tictactoe.TicTacToeView
 
-fun main(args: Array<String>) {
-    val name = if (args.isNotEmpty()) args[0] else "Test"
 
-    println("Connecting...")
-    val socket = Socket()
-    socket.connect(InetSocketAddress("127.0.0.1", 6666))
-
-    val dataOut = ObjectOutputStream(socket.getOutputStream())
-    val dataIn = ObjectInputStream(socket.getInputStream())
-
-    dataOut.writeObject(InetPacket.Connect(name, "SuperLobby", GameType.TIC_TAC_TOE))
-
-    Thread {
-        try {
-            while (true) {
-                val packet = dataIn.readObject() as InetPacket
-                if (packet is TicTacToePackets.LobbyInfo) {
-                    val info = packet.lobbyInfo
-                    if (!info.isOpen) {
-                        val inGameInfo = info.ticTacToeInfo
-                        println("Running: ${info.lobbyName}[${info.hostName}] - ${info.playerXName} vs. ${info.playerOName}")
-                        printBoard(inGameInfo!!.board)
-                        if (inGameInfo.tie) {
-                            println("TIE")
-                        } else if (inGameInfo.xWon) {
-                            println("X WON")
-                        } else if (inGameInfo.oWon) {
-                            println("O WON")
-                        } else if (inGameInfo.currentPlayerIsX == (name == info.playerXName)) {
-                            println("Your turn")
-                        } else {
-                            println("Enemy's turn")
-                        }
-                    } else {
-                        println("${info.lobbyName}, ${info.isOpen}, ${info.hostName}, ${info.playerXName}, ${info.playerOName}")
+@Composable
+@Preview
+fun App(uiState: UIState, scaffoldState: ScaffoldState) {
+    MaterialTheme {
+        Scaffold (
+            scaffoldState = scaffoldState,
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = colors.background
+            ) {
+                when (uiState) {
+                    is ConnectionUIState -> {
+                        ConnectionView(uiState)
                     }
-
-
-                } else if (packet is InetPacket.Response){
-                    println(packet.code)
-                } else {
-                    println(packet)
-                }
-            }
-        } catch (e: IOException) {
-            println(e.javaClass.simpleName + " " + (e.message ?: ""))
-            println("Stopping thread")
-        }
-    }.start()
-
-    while(true) {
-        val cmd = readln()
-
-        when (cmd) {
-            "swap" -> dataOut.writeObject(InetPacket.SwapPlayers())
-            "exit" -> {
-                dataIn.close()
-                dataOut.close()
-                socket.close()
-            }
-            "start" -> dataOut.writeObject(InetPacket.StartGame())
-            "u" -> dataOut.writeObject(InetPacket.StatusRequest())
-            "stop" -> dataOut.writeObject(InetPacket.StopGame())
-            else -> {
-                if (cmd.startsWith("place")) {
-                    val parts = cmd.split(" ")
-                    dataOut.writeObject(TicTacToePackets.PlaceMark(parts[1].toInt(), parts[2].toInt()))
+                    is TicTacToeUIState -> {
+                        TicTacToeView(uiState)
+                    }
+                    else -> {}
                 }
             }
         }
     }
-
 }
 
-fun printBoard(board: Array<IntArray>) {
-    println("${board[0][0]} ${board[0][1]} ${board[0][2]}")
-    println("${board[1][0]} ${board[1][1]} ${board[1][2]}")
-    println("${board[2][0]} ${board[2][1]} ${board[2][2]}")
+fun main() {
+    TicTacToeUIState::javaClass.javaClass.getResourceAsStream("/tictactoe/Cross.svg")
+
+    application {
+        val scaffoldState = rememberScaffoldState()
+        val coroutineScope = rememberCoroutineScope()
+        var uiState: UIState by remember { mutableStateOf(ConnectionUIState(scaffoldState, coroutineScope)) }
+        remember { uiState.onStateChange = { it ->
+            uiState = it
+        }}
+
+        val windowState = rememberWindowState()
+        windowState.size = DpSize(900.dp, 700.dp)
+
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = uiState.title,
+            resizable = false,
+            state = windowState,
+        ) {
+           App(uiState, scaffoldState)
+        }
+    }
 }

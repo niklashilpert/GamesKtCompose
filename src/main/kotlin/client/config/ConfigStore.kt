@@ -5,7 +5,7 @@ import game.gameTypeOf
 
 val CONNECTION_INFO_FILE = "connection_info"
 
-object ConfigStore {
+internal object ConfigStore {
     private val connectionInfoConfig = ConfigFile(CONNECTION_INFO_FILE, hashMapOf(
         "ip" to "hilpert.dev",
         "port" to "6666",

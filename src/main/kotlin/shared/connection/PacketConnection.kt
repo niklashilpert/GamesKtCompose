@@ -11,12 +11,16 @@ class PacketConnection(private val socket: Socket, isClientSide: Boolean) : Clos
     private val dataOut: ObjectOutputStream
 
     init {
-        if (isClientSide) {
-            dataOut = ObjectOutputStream(socket.getOutputStream())
-            dataIn = ObjectInputStream(socket.getInputStream())
-        } else {
-            dataIn = ObjectInputStream(socket.getInputStream())
-            dataOut = ObjectOutputStream(socket.getOutputStream())
+        try {
+            if (isClientSide) {
+                dataOut = ObjectOutputStream(socket.getOutputStream())
+                dataIn = ObjectInputStream(socket.getInputStream())
+            } else {
+                dataIn = ObjectInputStream(socket.getInputStream())
+                dataOut = ObjectOutputStream(socket.getOutputStream())
+            }
+        } catch (e: IOException) {
+            throw IOException("Error while initializing packet connection", e)
         }
     }
 

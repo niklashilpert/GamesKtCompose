@@ -10,6 +10,12 @@ class TicTacToe {
         IN_PROGRESS,
     }
 
+    enum class CellOccupation {
+        FREE,
+        X_OCCUPIED,
+        O_OCCUPIED,
+    }
+
     class Info(
         val board: Array<IntArray>,
         val currentPlayerIsX: Boolean,
@@ -17,7 +23,16 @@ class TicTacToe {
         val oWon: Boolean,
         val tie: Boolean,
         val inProgress: Boolean
-    ) : Serializable
+    ) : Serializable {
+        fun getOccupation(x: Int, y: Int): CellOccupation {
+            return when (board[x][y]) {
+                0 -> CellOccupation.FREE
+                1 -> CellOccupation.X_OCCUPIED
+                -1 -> CellOccupation.O_OCCUPIED
+                else -> CellOccupation.FREE
+            }
+        }
+    }
 
     fun getInfo(): Info {
         val gameStatus = checkGameStatus()
