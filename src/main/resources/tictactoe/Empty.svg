@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="40mm"
+   height="39.999996mm"
+   viewBox="0 0 40 39.999996"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <linearGradient
+       id="swatch17">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0.82503539;"
+         offset="0"
+         id="stop17" />
+    </linearGradient>
+    <linearGradient
+       id="swatch5">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop5" />
+    </linearGradient>
+  </defs>
+  <g
+     id="layer1"
+     transform="translate(-65.150003,-100)">
+    <ellipse
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:5;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       id="path2"
+       cy="20.530462"
+       cx="20.831966"
+       transform="rotate(0.41853811)"
+       rx="18.181433"
+       ry="18.182081" />
+    <circle
+       style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke-width:0.264999;stroke-dasharray:none;paint-order:stroke fill markers"
+       id="path5"
+       cx="37.56657"
+       cy="57.662422"
+       r="25.436642" />
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:5;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       d="M 52.236213,1.913149 87.763787,37.55624"
+       id="path19" />
+    <path
+       style="fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:5.09217;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       d="M 87.915779,1.7937544 51.806929,38.167817"
+       id="path19-5" />
+  </g>
+</svg>
