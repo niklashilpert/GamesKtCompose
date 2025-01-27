@@ -1,8 +1,10 @@
 package client.config
 
 import java.io.File
+import java.nio.file.FileSystems
 
-const val CONFIG_DIR = "/home/niklas/Desktop/GamesKtCompose/"
+val FILE_SEPARATOR: String = FileSystems.getDefault().separator
+val CONFIG_DIR = System.getProperty("user.home") + FILE_SEPARATOR + "GamesKtCompose"
 val LINE_FORMAT = Regex("^([a-zA-Z-_. ]+)=(.+)$")
 
 internal class ConfigFile(val name: String, defaultProperties: HashMap<String, String>) {
